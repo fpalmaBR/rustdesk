@@ -21,6 +21,9 @@ on:
         required: true
         default: "custom-windows"
 
+permissions:
+  contents: write
+
 env:
   SCITER_RUST_VERSION: "1.75"
   RUST_VERSION: "1.75"
@@ -58,6 +61,8 @@ jobs:
     name: ${{ matrix.job.target }}
     needs: [build-RustDeskTempTopMostWindow, generate-bridge]
     runs-on: ${{ matrix.job.os }}
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -246,7 +251,9 @@ jobs:
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
+        continue-on-error: true
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: false
           tag_name: ${{ env.TAG_NAME }}
           files: |
