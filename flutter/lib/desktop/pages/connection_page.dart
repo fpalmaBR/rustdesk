@@ -126,7 +126,7 @@ class _OnlineStatusWidgetState extends State<OnlineStatusWidget> {
               ),
             ).marginSymmetric(horizontal: em),
             Container(
-              width: isIncomingOnly ? 226 : null,
+              width: isIncomingOnly ? 300 : null,
               child: _buildConnStatusMsg(),
             ),
             // stop
@@ -162,7 +162,9 @@ class _OnlineStatusWidgetState extends State<OnlineStatusWidget> {
               ? translate("connecting_status")
               : stateGlobal.svcStatus.value == SvcStatus.notReady
                   ? translate("not_ready_status")
-                  : translate('Ready'),
+                  : (_svcIsUsingPublicServer.value
+                      ? "Pronto - conectado em rede pública"
+                      : "Pronto - Conectado no Palma Consultoria"),
       style: TextStyle(fontSize: em),
     );
   }

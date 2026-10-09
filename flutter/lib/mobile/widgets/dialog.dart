@@ -70,10 +70,19 @@ void showServerSettingsWithValue(
     OverlayDialogManager dialogManager,
     void Function(VoidCallback)? upSetState) async {
   var isInProgress = false;
-  final idCtrl = TextEditingController(text: serverConfig.idServer);
-  final relayCtrl = TextEditingController(text: serverConfig.relayServer);
+  final idCtrl = TextEditingController(
+      text: serverConfig.idServer.isNotEmpty
+          ? serverConfig.idServer
+          : 'rustdesk.palma.cloudns.cc');
+  final relayCtrl = TextEditingController(
+      text: serverConfig.relayServer.isNotEmpty
+          ? serverConfig.relayServer
+          : 'rustdesk.palma.cloudns.cc');
   final apiCtrl = TextEditingController(text: serverConfig.apiServer);
-  final keyCtrl = TextEditingController(text: serverConfig.key);
+  final keyCtrl = TextEditingController(
+      text: serverConfig.key.isNotEmpty
+          ? serverConfig.key
+          : 'fUKE4r0Y0R6UPOAmi+i+uIrrLsdcEaYCbk6RWSZQoZQ=');
 
   RxString idServerMsg = ''.obs;
   RxString relayServerMsg = ''.obs;
@@ -88,21 +97,7 @@ void showServerSettingsWithValue(
 
   dialogManager.show((setState, close, context) {
     Future<bool> submit() async {
-      setState(() {
-        isInProgress = true;
-      });
-      bool ret = await setServerConfig(
-          null,
-          errMsgs,
-          ServerConfig(
-              idServer: idCtrl.text.trim(),
-              relayServer: relayCtrl.text.trim(),
-              apiServer: apiCtrl.text.trim(),
-              key: keyCtrl.text.trim()));
-      setState(() {
-        isInProgress = false;
-      });
-      return ret;
+      return true;
     }
 
     Widget buildField(
@@ -126,6 +121,7 @@ void showServerSettingsWithValue(
                 showLabelText: false,
                 validator: validator,
                 autofocus: autofocus,
+                enabled: false,
               ).workaroundFreezeLinuxMint(),
             ),
           ],
@@ -137,6 +133,7 @@ void showServerSettingsWithValue(
         controller: controller,
         errorMsg: errorMsg,
         validator: validator,
+        enabled: false,
       ).workaroundFreezeLinuxMint();
     }
 
@@ -144,7 +141,6 @@ void showServerSettingsWithValue(
       title: Row(
         children: [
           Expanded(child: Text(translate('ID/Relay Server'))),
-          ...ServerConfigImportExportWidgets(controllers, errMsgs),
         ],
       ),
       content: ConstrainedBox(
@@ -153,8 +149,25 @@ void showServerSettingsWithValue(
           child: Obx(() => Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0x1A2c8cff),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'Configurações gerenciadas por Palma Consultoria (somente leitura)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF2c8cff),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                   buildField(translate('ID Server'), idCtrl, idServerMsg.value,
-                      autofocus: true),
+                      autofocus: false),
                   SizedBox(height: 8),
                   if (!isIOS && !isWeb) ...[
                     buildField(translate('Relay Server'), relayCtrl,
@@ -165,41 +178,18 @@ void showServerSettingsWithValue(
                     translate('API Server'),
                     apiCtrl,
                     apiServerMsg.value,
-                    validator: (v) {
-                      if (v != null && v.isNotEmpty) {
-                        if (!(v.startsWith('http://') ||
-                            v.startsWith("https://"))) {
-                          return translate("invalid_http");
-                        }
-                      }
-                      return null;
-                    },
                   ),
                   SizedBox(height: 8),
                   buildField('Key', keyCtrl, ''),
-                  if (isInProgress)
-                    Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: LinearProgressIndicator(),
-                    ),
                 ],
               )),
         ),
       ),
       actions: [
-        dialogButton('Cancel', onPressed: () {
-          close();
-        }, isOutline: true),
         dialogButton(
           'OK',
-          onPressed: () async {
-            if (await submit()) {
-              close();
-              showToast(translate('Successful'));
-              upSetState?.call(() {});
-            } else {
-              showToast(translate('Failed'));
-            }
+          onPressed: () {
+            close();
           },
         ),
       ],
@@ -215,8 +205,10 @@ TextFormField serverSettingsTextFormField({
   bool autofocus = false,
   bool showLabelText = true,
   EdgeInsetsGeometry? contentPadding,
+  bool enabled = true,
 }) {
   return TextFormField(
+    enabled: enabled,
     controller: controller,
     decoration: InputDecoration(
       labelText: showLabelText ? label : null,
